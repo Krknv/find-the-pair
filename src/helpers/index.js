@@ -1,4 +1,7 @@
-export const generateCards = ({ PAIRS_COUNT, icons: items }) => {
+export const generateCards = ({ PAIRS_COUNT, icons }) => {
+  // clone array
+  let items = JSON.parse(JSON.stringify(icons));
+
   // randomize array [1]
   items.sort(() => Math.random() - 0.5);
   // cutting array
