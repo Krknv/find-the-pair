@@ -1,7 +1,8 @@
 import { Flex } from 'rebass';
-import { useEffect, useState } from 'react';
+import { useEffect, useReducer } from 'react';
 import styled from 'styled-components';
 
+import { reducer } from '/Work/freelance/find-the-pair/src/helpers/reducer';
 import { closeAllCards, generateCards, updateCards } from 'src/helpers/index';
 import { icons } from 'src/constants/icons';
 import { PAIRS_COUNT, SCREEN_END, SCREEN_GAME, SCREEN_START, TIME_TO_CHOICE } from 'src/constants';
@@ -14,15 +15,20 @@ const Cards = styled(Flex)`
   max-width: 800px;
 `;
 
+const initialState = {
+  cards: [],
+  delay: 1000,
+  isRunning: false,
+  openCards: [],
+  screen: SCREEN_START,
+  time: TIME_TO_CHOICE,
+  totalClicks: 0,
+  totalPairs: 0,
+};
+
 const Index = () => {
-  const [cards, setCards] = useState([]);
-  const [openCards, setOpenCards] = useState([]);
-  const [delay] = useState(1000);
-  const [isRunning, setIsRunning] = useState(false);
-  const [screen, setScreen] = useState(SCREEN_START);
-  const [time, setTime] = useState(TIME_TO_CHOICE);
-  const [totalClicks, setTotalClicks] = useState(0);
-  const [totalPairs, setTotalPairs] = useState(0);
+  const [state, dispatch] = useReducer(reducer, initialState);
+  const { cards, delay, isRunning, openCards, screen, time, totalClicks, totalPairs } = state;
 
   useEffect(() => {
     if (screen === SCREEN_GAME) {
@@ -33,70 +39,88 @@ const Index = () => {
   useInterval(
     () => {
       if (time !== 0) {
-        setTime(time - 1000);
+        dispatch({ type: 'setTime', payload: time - 1000 });
       } else {
+        dispatch({ type: 'setCards', payload: closeAllCards({ cards }) });
         resetTimer();
-        setCards(closeAllCards({ cards }));
       }
     },
     isRunning ? delay : null,
   );
 
   useEffect(() => {
-    setOpenCards(cards.filter(item => item.open && !item.paired));
+    dispatch({
+      type: 'setOpenCards',
+      payload: cards.filter(item => item.open && !item.paired),
+    });
   }, [cards]);
 
   useEffect(() => {
     if (openCards.length === 1) {
-      setIsRunning(true);
+      dispatch({ type: 'setIsRunning', payload: true });
     }
 
     if (openCards.length === 2) {
-      let newCards = [];
+      let payload = [];
 
-      setIsRunning(false);
+      dispatch({ type: 'setIsRunning', payload: false });
       resetTimer();
 
       if (openCards[0].icon === openCards[1].icon) {
-        setTotalPairs(totalPairs + 1);
-        newCards = updateCards({ cards, icon: openCards[0].icon });
+        dispatch({ type: 'setTotalPairs', payload: totalPairs + 1 });
+        payload = updateCards({ cards, icon: openCards[0].icon });
       } else {
-        newCards = closeAllCards({ cards });
+        payload = closeAllCards({ cards });
       }
 
       setTimeout(() => {
-        setCards(newCards);
+        dispatch({ type: 'setCards', payload });
       }, 1000);
     }
 
     if (totalPairs === PAIRS_COUNT) {
       setTimeout(() => {
-        setScreen(SCREEN_END);
+        dispatch({ type: 'setScreen', payload: SCREEN_END });
       }, 900);
     }
   }, [openCards]);
 
   const initGame = () => {
     resetTimer();
-    setTotalClicks(0);
-    setTotalPairs(0);
-    setCards(generateCards({ icons, PAIRS_COUNT }));
+    dispatch({
+      type: 'setState',
+      payload: {
+        cards: generateCards({ icons, PAIRS_COUNT }),
+        totalClicks: 0,
+        totalPairs: 0,
+      },
+    });
   };
 
   const startGame = () => {
-    setScreen(SCREEN_GAME);
+    dispatch({ type: 'setScreen', payload: SCREEN_GAME });
   };
 
   const resetTimer = () => {
-    setTime(TIME_TO_CHOICE);
-    setIsRunning(false);
+    dispatch({
+      type: 'setState',
+      payload: {
+        time: TIME_TO_CHOICE,
+        isRunning: false,
+      },
+    });
   };
 
   const openCard = item => {
     if (openCards.length < 2) {
       const { index } = item;
-      setCards([...cards.slice(0, index), { ...item, open: true }, ...cards.slice(index + 1)]);
-      setTotalClicks(totalClicks + 1);
+      dispatch({
+        type: 'setState',
+        payload: {
+          cards: [...cards.slice(0, index), { ...item, open: true }, ...cards.slice(index + 1)],
+          totalClicks: totalClicks + 1,
+        },
+      });
     }
   };
 
