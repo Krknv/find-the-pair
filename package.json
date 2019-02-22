@@ -1,7 +1,8 @@
 {
   "scripts": {
-    "dev": "next -p 3027",
     "build": "next build",
+    "dev": "next -p 3027",
+    "export": "yarn build && next export",
     "start": "next start"
   },
   "dependencies": {
