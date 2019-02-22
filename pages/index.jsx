@@ -2,10 +2,10 @@ import { Flex } from 'rebass';
 import { useEffect, useReducer } from 'react';
 import styled from 'styled-components';
 
-import { reducer } from '/Work/freelance/find-the-pair/src/helpers/reducer';
 import { closeAllCards, generateCards, updateCards } from 'src/helpers/index';
 import { icons } from 'src/constants/icons';
 import { PAIRS_COUNT, SCREEN_END, SCREEN_GAME, SCREEN_START, TIME_TO_CHOICE } from 'src/constants';
+import { reducer } from 'src/helpers/reducer';
 import { useInterval } from 'src/helpers/use-interval';
 import Card from 'src/components/card';
 import Header from 'src/components/header';
